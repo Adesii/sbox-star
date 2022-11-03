@@ -1,0 +1,43 @@
+@using Star.Player
+@namespace Star.UI
+@attribute [StyleSheet("/ui/Hud.scss")]
+@inherits RootPanel
+
+<root>
+    <CursorController />
+
+    <div class="bottom">
+        <div class="AboveBar-controls">
+            <div class="control-row">
+                <button class="control-button" @onclick=@SwitchBuildMode>Build</button>
+                <button class="control-button" @onclick=@CreateNew>CreateNew</button>
+            </div>
+        </div>
+        <HotBar class="@(@BuildMode ? "hidden" : "idk")" />
+        <BuildMode class="@(!@BuildMode ? "hidden" : "idk")" />
+    </div>
+
+    <div class="center">
+    </div>
+</root>
+
+@code {
+    public static Hud Current { get; private set; }
+
+    public bool BuildMode => Captain.Local.IsBuildMode;
+
+    public Hud()
+    {
+        Current = this;
+    }
+
+    public void SwitchBuildMode()
+    {
+        Captain.Local.IsBuildMode = !Captain.Local.IsBuildMode;
+    }
+
+    public void CreateNew()
+    {
+        Captain.CreateTestSpaceCube();
+    }
+}

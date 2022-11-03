@@ -1,0 +1,19 @@
+@namespace Star.UI
+@attribute [StyleSheet("/ui/HotBar.scss")]
+@inherits Panel
+
+<root>
+    <div class="Controls">
+        <div class="stack-controls">
+            @for (int x = 0; x < 2; x++)
+            {
+                <div class="control-row">
+                    @for (int y = 0; y < (x == 0 ? 4 : 3); y++)
+                    {
+                        <button class="control-button">row: @x column: @y</button>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</root>
