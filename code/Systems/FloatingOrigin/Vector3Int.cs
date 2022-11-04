@@ -1,4 +1,4 @@
-namespace Star.World
+namespace Star
 {
 	public struct Vector3Int
 	{

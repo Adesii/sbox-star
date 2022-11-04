@@ -1,5 +1,6 @@
 using Architect;
 using Star.Player;
+using Star.Systems.Building;
 using Star.World;
 
 namespace Star.Entities;
@@ -11,11 +12,13 @@ public partial class SpaceObject : FloatingEntity
 
 	public int CellScale => 32;
 	/// <summary>
-	/// The parts of the Space object using the IDEnt format as the string.
-	/// i.e. "Star.Block.Concrete"
+	/// The index of the object in the Parts list. so a part can occupy multiple cells. but still count as one part.
 	/// </summary>
 	[Net]
-	public Dictionary<Vector3Int, string> ObjectParts { get; set; } = new();
+	public Dictionary<Vector2Int, int> ObjectPartsOccupations { get; set; } = new();
+
+	[Net]
+	public List<SpacePartInstance> Parts { get; set; } = new();
 
 	public bool Selected = false;
 
@@ -32,7 +35,7 @@ public partial class SpaceObject : FloatingEntity
 	{
 		var offsetPosition = ((LocalChunk - localchunk) * FloatingManager.ChunkSize) + OriginPosition;
 		LocalChunkPosition = offsetPosition;
-		VisualObject.so.Position = offsetPosition;
+		VisualObject.so.Position = offsetPosition - new Vector3( (VisualObject.GridSize * MaxObjectWidth) / 2 );
 		VisualObject.so.Bounds = new BBox( -1000, 1000 ) + offsetPosition;
 	}
 	[Event.Hotload]

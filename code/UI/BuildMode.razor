@@ -1,19 +1,38 @@
+@using Star.Systems.Building
 @namespace Star.UI
 @attribute [StyleSheet("/ui/BuildMode.scss")]
 @inherits Panel
 
 <root>
     <div class="Controls">
-        <div class="stack-controls">
-            @for (int x = 0; x < 2; x++)
-            {
-                <div class="control-row">
-                    @for (int y = 0; y < 20; y++)
-                    {
-                        <button class="control-button">row: @x column: @y</button>
-                    }
-                </div>
-            }
+        <div class="TabGroup">
+            <div class="TabButtonRow">
+                @foreach (var category in SpacePartDefinition.SpacePartDefinitions.Values.GroupBy(x =>
+                x.Category).OrderBy(x => x.Key))
+                {
+                    <button class="TabButton" @onclick=@(()=> CurrentCategory =
+                    category.Key)>@category.Key.ToTitleCase()</button>
+                }
+            </div>
+            <div class="TabContent">
+                @foreach (var category in SpacePartDefinition.SpacePartDefinitions.Values.GroupBy(x => x.Category))
+                {
+                    var c = category.Key == CurrentCategory ? "active" : "";
+                    <div class="Tab @c">
+                        <div class="TabItems ">
+                            @foreach (var part in category)
+                            {
+                                <button class="control-button">@part.ResourceName.ToTitleCase()</button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </root>
+
+@code {
+
+    public string CurrentCategory { get; set; } = "Basic";
+}

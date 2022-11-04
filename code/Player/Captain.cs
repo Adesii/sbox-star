@@ -54,14 +54,6 @@ public partial class Captain : Entity
 		{
 			Rotation = Rotation.RotateAroundAxis( Vector3.Up, -100f * Time.Delta );
 		}
-		if ( Input.Pressed( InputButton.PrimaryAttack ) && IsClient )
-		{
-			CreateTestCube();
-		}
-		if ( Input.Pressed( InputButton.SecondaryAttack ) && IsClient )
-		{
-			CreateTestSpaceCube();
-		}
 
 
 		ZoomBy( Input.MouseWheel );
@@ -94,15 +86,6 @@ public partial class Captain : Entity
 		DebugOverlay.Box( -new Vector3( FloatingManager.ChunkSize ), new( FloatingManager.ChunkSize ), Color.Red, 0 );
 		DebugOverlay.Sphere( GetRealLocalPosition(), 10f, Host.IsServer ? Color.Red : Color.Blue );
 
-	}
-
-	[ConCmd.Server]
-	public static void CreateTestCube()
-	{
-		if ( ConsoleSystem.Caller.Pawn is not Captain captain ) return;
-
-		var idk = new FloatingEntity();
-		idk.SetPosition( captain.LocalChunk, captain.LocalPosition, captain.LocalChunkPosition );
 	}
 
 	[ConCmd.Server]
