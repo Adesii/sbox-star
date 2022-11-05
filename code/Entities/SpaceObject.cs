@@ -1,6 +1,8 @@
 using Architect;
+using Sandbox.Csg;
 using Star.Player;
 using Star.Systems.Building;
+using Star.Util;
 using Star.World;
 
 namespace Star.Entities;
@@ -24,21 +26,36 @@ public partial class SpaceObject : FloatingEntity
 
 	private WallObject VisualObject;
 
+	[Net]
+	public CsgSolid Geometry { get; set; }
 
 
+
+
+	public override void Spawn()
+	{
+		base.Spawn();
+		Geometry = new( 1024 );
+		Geometry.Add( Game.Instance.CubeBrush,
+			Game.Instance.DefaultMaterial,
+			scale: new Vector3( 8000, 8000, 100f ) );
+		Geometry.IsStatic = false;
+		Geometry.FloatingParent = this;
+
+	}
 	public override void ClientSpawn()
 	{
 		base.ClientSpawn();
-		CreateMesh();
+		//CreateMesh();
 	}
 	public override void UpdatePosition( Vector3 localchunk )
 	{
-		var offsetPosition = ((LocalChunk - localchunk) * FloatingManager.ChunkSize) + OriginPosition;
-		LocalChunkPosition = offsetPosition;
-		VisualObject.so.Position = offsetPosition - new Vector3( (VisualObject.GridSize * MaxObjectWidth) / 2 );
-		VisualObject.so.Bounds = new BBox( -1000, 1000 ) + offsetPosition;
+		base.UpdatePosition( localchunk );
+		if ( VisualObject == null || !VisualObject.so.IsValid() ) return;
+		VisualObject.so.Position = LocalChunkPosition - new Vector3( (VisualObject.GridSize * MaxObjectWidth) / 2 );
+		VisualObject.so.Bounds = new BBox( -1000, 1000 ) + LocalChunkPosition;
 	}
-	[Event.Hotload]
+	//[Event.Hotload]
 	private void CreateMesh()
 	{
 		if ( IsServer ) return;
@@ -92,6 +109,15 @@ public partial class SpaceObject : FloatingEntity
 		if ( VisualObject != null && Captain.Local.IsBuildMode && Selected )
 		{
 			VisualObject.DebugDraw( LocalChunkPosition );
+		}
+
+		if ( Debug.Level >= 1 && IsClient )
+		{
+			DebugOverlay.Sphere( LocalChunkPosition, 50, Color.Red );
+			if ( Geometry.IsValid() )
+			{
+				DebugOverlay.Sphere( Geometry.LocalChunkPosition, 70, Color.Green );
+			}
 		}
 	}
 

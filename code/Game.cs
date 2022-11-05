@@ -1,4 +1,5 @@
 ﻿using Sandbox;
+
 using Star.Player;
 using Star.UI;
 
@@ -7,6 +8,15 @@ namespace Star;
 public partial class Game : Sandbox.Game
 {
 	public static Game Instance => Sandbox.Game.Current as Game;
+
+
+	public CsgBrush CubeBrush { get; } = ResourceLibrary.Get<CsgBrush>( "brushes/cube.csg" );
+	public CsgBrush DodecahedronBrush { get; } = ResourceLibrary.Get<CsgBrush>( "brushes/dodecahedron.csg" );
+
+	public CsgMaterial DefaultMaterial { get; } = ResourceLibrary.Get<CsgMaterial>( "materials/csgdemo/default.csgmat" );
+	public CsgMaterial RedMaterial { get; } = ResourceLibrary.Get<CsgMaterial>( "materials/csgdemo/red.csgmat" );
+	public CsgMaterial ScorchedMaterial { get; } = ResourceLibrary.Get<CsgMaterial>( "materials/csgdemo/scorched.csgmat" );
+
 
 	public Game()
 	{

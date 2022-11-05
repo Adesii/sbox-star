@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Sandbox;
+using Star.Entities;
 using Star.World;
 
 
@@ -14,6 +15,10 @@ partial class Captain : IFloatingOrigin
 	[Net, Predicted]
 	public Vector3 OriginPosition { get; set; }
 	public Vector3 LocalChunkPosition { get; set; }
+	[Net, Predicted]
+	public Vector3 LocalParentPosition { get; set; }
+	[Net]
+	public FloatingEntity FloatingParent { get; set; }
 
 	public void UpdatePosition( Vector3 localchunk )
 	{

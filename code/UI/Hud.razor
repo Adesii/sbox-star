@@ -11,6 +11,7 @@
             <div class="control-row">
                 <button class="control-button" @onclick=@SwitchBuildMode>Build</button>
                 <button class="control-button" @onclick=@CreateNew>CreateNew</button>
+                <button class="control-button" @onclick=@DeleteAll>DeleteAll</button>
             </div>
         </div>
         <HotBar class="@(@BuildMode ? "hidden" : "idk")" />
@@ -39,5 +40,10 @@
     public void CreateNew()
     {
         Captain.CreateTestSpaceCube();
+    }
+
+    public void DeleteAll()
+    {
+        Captain.DeleteAll();
     }
 }

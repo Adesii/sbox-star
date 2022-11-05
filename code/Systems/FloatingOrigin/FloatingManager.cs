@@ -1,8 +1,4 @@
-using System;
-using System.Linq;
-using Sandbox;
 using Star.Player;
-using Star.Util;
 
 namespace Star.World
 {
@@ -64,6 +60,7 @@ namespace Star.World
 				}
 			}
 		}
+
 		[ClientRpc]
 		public static void UpdateLocalPositions()
 		{

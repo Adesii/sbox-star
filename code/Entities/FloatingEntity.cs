@@ -37,7 +37,27 @@ public partial class FloatingEntity : Entity, IFloatingOrigin
 			}
 		}
 	}
+
+	public new Transform Transform
+	{
+		get
+		{
+			return new Transform( LocalChunkPosition, Rotation, Scale );
+		}
+		set
+		{
+			OriginPosition = value.Position; // TODO: Figure out if this should be LocalChunkPosition Instead for the Client
+			Rotation = value.Rotation;
+			Scale = value.Scale;
+		}
+	}
+
+
+	[Net]
+	public FloatingEntity FloatingParent { get; set; }
 	public Vector3 LocalChunkPosition { get; set; }
+	[Net]
+	public Vector3 LocalParentPosition { get; set; }
 
 	public override void ClientSpawn()
 	{
@@ -46,9 +66,18 @@ public partial class FloatingEntity : Entity, IFloatingOrigin
 
 	public virtual void UpdatePosition( Vector3 localchunk )
 	{
-		var offsetPosition = ((LocalChunk - localchunk) * FloatingManager.ChunkSize) + OriginPosition;
+		if ( FloatingParent.IsValid() )
+		{
+			FloatingParent.UpdatePosition( localchunk );
+			LocalChunkPosition = FloatingParent.LocalChunkPosition + LocalParentPosition;
+		}
+		else
+		{
+
+			LocalChunkPosition = ((LocalChunk - localchunk) * FloatingManager.ChunkSize) + OriginPosition;
+		}
 		if ( SceneObject.IsValid() )
-			SceneObject.Position = offsetPosition;
+			SceneObject.Position = LocalChunkPosition;
 	}
 
 	public void UpdatePosition()
@@ -60,10 +89,12 @@ public partial class FloatingEntity : Entity, IFloatingOrigin
 	private void UpdateRendering()
 	{
 		if ( Local.Pawn is not Captain player ) return;
-		var offsetPosition = ((LocalChunk - player.LocalChunk) * FloatingManager.ChunkSize) + OriginPosition;
-		LocalChunkPosition = offsetPosition;
+		UpdatePosition();
 		if ( SceneObject.IsValid() )
-			SceneObject.Position = offsetPosition;
+		{
+			SceneObject.Transform = Transform;
+
+		}
 	}
 	[Event.Tick]
 	public virtual void Tick()
@@ -74,7 +105,8 @@ public partial class FloatingEntity : Entity, IFloatingOrigin
 			Rotation *= Rotation.FromYaw( 1 );
 
 		}
-		else if ( Debug.Level > 4 )
+		else
+		if ( Debug.Level > 4 )
 		{
 			DebugOverlay.Text( $"Origin: {OriginPosition} - LocalChunk: {LocalChunk} - LocalChunkPosition: {LocalChunkPosition}", LocalChunkPosition, 0 );
 
@@ -102,4 +134,13 @@ public partial class FloatingEntity : Entity, IFloatingOrigin
 	{
 		UpdatePosition( LocalChunk );
 	}
+
+
+	public Vector3 ConvertWorldToFloating( Vector3 position )
+	{
+		UpdatePosition( LocalChunk );
+		return position - LocalChunkPosition;
+	}
+
+
 }
