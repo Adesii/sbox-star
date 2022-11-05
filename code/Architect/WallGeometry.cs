@@ -52,6 +52,8 @@ namespace Architect
 				.AddMesh( floorGridMesh )
 				.Create();
 
+
+
 			so = new SceneObject( sceneWorld, model, new Transform( Vector3.Zero ) );
 			so.Flags.CastShadows = true;
 		}

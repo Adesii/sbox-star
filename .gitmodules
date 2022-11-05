@@ -1,0 +1,3 @@
+[submodule "code/Libraries/sbox-csg"]
+	path = code/Libraries/sbox-csg
+	url = https://github.com/Adesii/sbox-csg-star-fork
