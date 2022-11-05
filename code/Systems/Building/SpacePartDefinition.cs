@@ -33,6 +33,7 @@ public partial class SpacePartDefinition : GameResource
 			SpacePartDefinitions = new();
 		}
 		SpacePartDefinitions[ResourcePath] = this;
+		Event.Run( "BuildMode.Changed" );
 	}
 
 	protected override void PostReload()
@@ -42,5 +43,6 @@ public partial class SpacePartDefinition : GameResource
 			SpacePartDefinitions = new();
 		}
 		SpacePartDefinitions[ResourcePath] = this;
+		Event.Run( "BuildMode.Changed" );
 	}
 }

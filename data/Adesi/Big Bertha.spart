@@ -3,7 +3,7 @@
 	data = 
 	{
 		PartDescription = ""
-		Category = "Impossible"
+		Category = "Weapon"
 		PartIcon = null
 		PartSize = "1,1"
 	}

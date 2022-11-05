@@ -35,4 +35,11 @@
 @code {
 
     public string CurrentCategory { get; set; } = "Basic";
+
+    [Event("BuildMode.Changed")]
+    public void InventoryChanged()
+    {
+        StateHasChanged();
+    }
+
 }
