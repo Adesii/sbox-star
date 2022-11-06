@@ -18,6 +18,8 @@ public partial class Captain : Entity
 
 	public bool IsBuildMode { get; set; }
 
+	public List<SpaceObject> SelectedObjects { get; set; } = new();
+
 
 	public override void Spawn()
 	{
@@ -84,33 +86,28 @@ public partial class Captain : Entity
 
 	public void TraceMouse()
 	{
-		if ( (Input.Pressed( InputButton.PrimaryAttack ) || Input.Pressed( InputButton.SecondaryAttack )) && IsClient )
+		if ( Input.Pressed( InputButton.PrimaryAttack ) && !IsBuildMode && IsClient )
 		{
 			var ray = new Ray( CurrentView.Position, Screen.GetDirection( Mouse.Position ) );
-			var add = Input.Pressed( InputButton.SecondaryAttack );
 			var idk = Trace.Ray( ray, 8192f ).IncludeClientside().Ignore( this ).Run();
 			//DebugOverlay.TraceResult( idk, 2 );
 			if ( idk is { Hit: true, HitPosition: var pos } hit )
 			{
-				var rotation = Rotation.Random;
-				var scale = Random.Shared.NextSingle() * 16f + 128f;
-
-				if ( add )
+				if ( FindEntityForPhysicsBody( hit.Body ) is CsgSolid solid )
 				{
-					if ( FindEntityForPhysicsBody( hit.Body ) is CsgSolid solid )
+					if ( solid.FloatingParent is SpaceObject spaceObject )
 					{
-						solid.UpdatePosition();
-						AddOnServer( solid.NetworkIdent, pos - solid.LocalChunkPosition, scale, rotation );
+						spaceObject.Selected = true;
+						SelectedObjects.Add( spaceObject );
 					}
+					/* solid.UpdatePosition();
+					AddOnServer( solid.NetworkIdent, pos - solid.LocalChunkPosition, scale, rotation ); */
 				}
-				else
-				{
-					foreach ( var solid in Entity.All.OfType<CsgSolid>() )
-					{
-						solid.UpdatePosition();
-						SubtractOnServer( solid.NetworkIdent, pos - solid.LocalChunkPosition, scale, rotation );
-					}
-				}
+			}
+			else
+			{
+				SelectedObjects.ForEach( x => x.Selected = false );
+				SelectedObjects.Clear();
 			}
 		}
 	}

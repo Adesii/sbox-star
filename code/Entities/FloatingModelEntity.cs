@@ -38,7 +38,7 @@ public class FloatingModelEntity : FloatingEntity
 	public override void ClientSpawn()
 	{
 		base.ClientSpawn();
-		SceneObject = new SceneObject( Map.Scene, Model.Load( "models/arrow.vmdl" ) );
+		SceneObject = new SceneObject( Map.Scene, Model.Load( "models/empty.vmdl" ) );
 	}
 
 	public PhysicsGroup SetupPhysicsFromSphere( PhysicsMotionType motionType, Vector3 center, float radius )

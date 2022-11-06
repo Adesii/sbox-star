@@ -27,17 +27,12 @@ public partial class Game : Sandbox.Game
 
 			Local.Hud?.Delete( true );
 			Local.Hud = new Hud();
+			//new SceneSunLight( Map.Scene, Rotation.LookAt( Vector3.Down - new Vector3( 100, 100, 0 ), Vector3.Up ), Color.White );
+			Map.Scene.AmbientLightColor = Color.White * 0.5f;
 		}
 	}
 	public override void ClientSpawn()
 	{
-		waitabit();
-	}
-	private async void waitabit()
-	{
-		await Task.DelaySeconds( 1 );
-		new SceneSunLight( Map.Scene, Rotation.LookAt( Vector3.Down - new Vector3( 100, 100, 0 ), Vector3.Up ), Color.White );
-		Map.Scene.AmbientLightColor = Color.White * 0.1f;
 	}
 
 	public override void ClientJoined( Client client )

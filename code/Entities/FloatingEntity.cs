@@ -99,13 +99,13 @@ public partial class FloatingEntity : Entity, IFloatingOrigin
 	[Event.Tick]
 	public virtual void Tick()
 	{
-		if ( Host.IsServer )
+		/* if ( Host.IsServer )
 		{
 			OriginPosition += Rotation * Vector3.Forward * 500 * Time.Delta;
 			Rotation *= Rotation.FromYaw( 1 );
 
 		}
-		else
+		else */
 		if ( Debug.Level > 4 )
 		{
 			DebugOverlay.Text( $"Origin: {OriginPosition} - LocalChunk: {LocalChunk} - LocalChunkPosition: {LocalChunkPosition}", LocalChunkPosition, 0 );

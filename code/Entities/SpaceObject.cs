@@ -36,9 +36,6 @@ public partial class SpaceObject : FloatingEntity
 	{
 		base.Spawn();
 		Geometry = new( 1024 );
-		Geometry.Add( Game.Instance.CubeBrush,
-			Game.Instance.DefaultMaterial,
-			scale: new Vector3( 8000, 8000, 100f ) );
 		Geometry.IsStatic = false;
 		Geometry.FloatingParent = this;
 
@@ -106,6 +103,10 @@ public partial class SpaceObject : FloatingEntity
 	public override void Tick()
 	{
 		base.Tick();
+		if ( Selected && IsClient && Geometry.IsValid() && Geometry.PhysicsBody.IsValid() )
+		{
+			DebugOverlay.Circle( LocalChunkPosition, Rotation.LookAt( Vector3.Up ), Geometry.PhysicsBody.GetBounds().Size.Length / 2, Color.Green );
+		}
 		if ( VisualObject != null && Captain.Local.IsBuildMode && Selected )
 		{
 			VisualObject.DebugDraw( LocalChunkPosition );
