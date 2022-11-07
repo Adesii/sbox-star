@@ -83,7 +83,7 @@ public partial class Captain : Entity
 		Debugging();
 		TraceMouse();
 	}
-
+	TimeSince LastPlacement = 0f;
 	public void TraceMouse()
 	{
 		if ( Input.Pressed( InputButton.PrimaryAttack ) && !IsBuildMode && IsClient )
@@ -110,6 +110,58 @@ public partial class Captain : Entity
 				SelectedObjects.Clear();
 			}
 		}
+		if ( IsBuildMode && IsClient )
+		{
+			var ray = new Ray( CurrentView.Position, Screen.GetDirection( Mouse.Position ) );
+			var WorldPlane = new Plane( 0, Vector3.Up );
+			var pos = WorldPlane.Trace( ray, true );
+			if ( pos is Vector3 buildpos )
+			{
+				DebugOverlay.Sphere( buildpos, 1f, Color.Red, 0.1f );
+				if ( SelectedObjects.FirstOrDefault() is SpaceObject spaceObject )
+				{
+					var index = spaceObject.ToGridIndex( buildpos );
+					if ( CanPlace( spaceObject, index ) )
+					{
+						DebugOverlay.Sphere( spaceObject.ToWorldPosition( index ), 1f, Color.Green, 0.1f );
+						if ( Input.Down( InputButton.PrimaryAttack ) && LastPlacement > 0.1f )
+						{
+							SpaceObject.AddPartFromClient( spaceObject.NetworkIdent, index, "data/adesi/concrete.spart" );
+							LastPlacement = 0;
+						}
+					}
+					else
+					{
+						DebugOverlay.Sphere( spaceObject.ToWorldPosition( index ), 1f, Color.Red, 0.1f );
+					}
+				}
+			}
+		}
+	}
+	public bool CanPlace( SpaceObject spaceObject, Vector2Int index )
+	{
+		if ( !spaceObject.ObjectPartsOccupations.ContainsKey( index ) )
+		{
+			// check if any of the 4 surrounding blocks are occupied
+			var surrounding = new Vector2Int[]
+			{
+				new( index.x - 1, index.y ),
+				new( index.x + 1, index.y ),
+				new( index.x, index.y - 1 ),
+				new( index.x, index.y + 1 ),
+			};
+			bool hasSurrounding = false;
+			foreach ( var s in surrounding )
+			{
+				if ( spaceObject.ObjectPartsOccupations.ContainsKey( s ) )
+				{
+					hasSurrounding = true;
+					break;
+				}
+			}
+			return hasSurrounding;
+		}
+		return false;
 	}
 
 	public Entity FindEntityForPhysicsBody( PhysicsBody body )

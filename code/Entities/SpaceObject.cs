@@ -1,18 +1,12 @@
-using Architect;
-using Sandbox.Csg;
-using Star.Player;
 using Star.Systems.Building;
 using Star.Util;
-using Star.World;
 
 namespace Star.Entities;
 
 public partial class SpaceObject : FloatingEntity
 {
-	public int MaxObjectWidth => 32;
-	public int MaxObjectHeight => 32;
+	public const int GridSize = 32;
 
-	public int CellScale => 32;
 	/// <summary>
 	/// The index of the object in the Parts list. so a part can occupy multiple cells. but still count as one part.
 	/// </summary>
@@ -24,20 +18,79 @@ public partial class SpaceObject : FloatingEntity
 
 	public bool Selected = false;
 
-	private WallObject VisualObject;
-
 	[Net]
 	public CsgSolid Geometry { get; set; }
-
-
 
 
 	public override void Spawn()
 	{
 		base.Spawn();
-		Geometry = new( 1024 );
-		Geometry.IsStatic = false;
-		Geometry.FloatingParent = this;
+		Geometry = new( 1024 )
+		{
+			IsStatic = false,
+			FloatingParent = this
+		};
+
+		//Create a TestObject
+		CreateTestMesh();
+	}
+
+	public void CreateTestMesh()
+	{
+		var part = ResourceLibrary.Get<SpacePartDefinition>( "data/adesi/concrete.spart" );
+		var partInstance = new SpacePartInstance
+		{
+			PartDefinition = part,
+			Health = 100,
+			Position = new( 0, 0 )
+		};
+		AddNewPart( partInstance );
+
+		var partInstance2 = new SpacePartInstance
+		{
+			PartDefinition = part,
+			Health = 100,
+			Position = new( 1, 0 )
+		};
+		AddNewPart( partInstance2 );
+	}
+
+	public void AddNewPart( SpacePartInstance part )
+	{
+		Parts.Add( part );
+
+		part.AddMeshToGeometry( Geometry );
+
+		var ListOfOccupaiedCells = part.GetOccupation();
+		foreach ( var cell in ListOfOccupaiedCells )
+		{
+			ObjectPartsOccupations[cell] = Parts.Count - 1;
+		}
+
+		//update surrounding parts
+		var surrounding = new Vector2Int[]
+			{
+				new( part.Position.x - 1, part.Position.y ),
+				new( part.Position.x + 1, part.Position.y ),
+				new( part.Position.x, part.Position.y - 1 ),
+				new( part.Position.x, part.Position.y + 1 ),
+				new( part.Position.x - 1, part.Position.y - 1 ),
+				new( part.Position.x + 1, part.Position.y + 1 ),
+				new( part.Position.x - 1, part.Position.y + 1 ),
+				new( part.Position.x + 1, part.Position.y - 1 ),
+			};
+		part.RemoveFromGeometry( Geometry );
+		part.PaintGeometry( Geometry );
+
+		foreach ( var cell in surrounding )
+		{
+			if ( ObjectPartsOccupations.ContainsKey( cell ) )
+			{
+				var parts = Parts[ObjectPartsOccupations[cell]];
+				parts.RemoveFromGeometry( Geometry );
+				parts.PaintGeometry( Geometry );
+			}
+		}
 
 	}
 	public override void ClientSpawn()
@@ -45,72 +98,27 @@ public partial class SpaceObject : FloatingEntity
 		base.ClientSpawn();
 		//CreateMesh();
 	}
-	public override void UpdatePosition( Vector3 localchunk )
-	{
-		base.UpdatePosition( localchunk );
-		if ( VisualObject == null || !VisualObject.so.IsValid() ) return;
-		VisualObject.so.Position = LocalChunkPosition - new Vector3( (VisualObject.GridSize * MaxObjectWidth) / 2 );
-		VisualObject.so.Bounds = new BBox( -1000, 1000 ) + LocalChunkPosition;
-	}
-	//[Event.Hotload]
-	private void CreateMesh()
-	{
-		if ( IsServer ) return;
-		var mult = CellScale / 32;
-		var gridSize = new Vector2( MaxObjectWidth * mult, MaxObjectHeight * mult );
-		var mapBounds = new Vector3( MaxObjectWidth * CellScale, MaxObjectHeight * CellScale, 64 );
-
-		VisualObject?.Destroy();
-		VisualObject = new( Map.Scene, Map.Physics, gridSize, mapBounds );
-
-		VisualObject.HEMesh.CreateGrid( MaxObjectWidth * mult, MaxObjectHeight * mult );
-
-		var my = (int)(VisualObject.GridSize.x / MaxObjectWidth);
-		var mx = (int)(VisualObject.GridSize.y / MaxObjectHeight);
-
-		var rect = new Rect( MaxObjectHeight / 2, MaxObjectHeight / 2, 1, 1 );
-
-		var left = (int)(rect.Left * mx);
-		var right = (int)(rect.Right * mx);
-		var bottom = (int)(rect.Bottom * my);
-		var top = (int)(rect.Top * my);
-
-		VisualObject.AddEdge( left, bottom, left, top, 1 );
-		VisualObject.AddEdge( right, bottom, right, top, 1 );
-		VisualObject.AddEdge( left, bottom, right, bottom, 1 );
-		VisualObject.AddEdge( left, top, right, top, 1 );
-
-
-		var recty = new Rect( 10, 0, 5, 5 );
-
-		var lefty = (int)(recty.Left * mx);
-		var righty = (int)(recty.Right * mx);
-		var bottomy = (int)(recty.Bottom * my);
-		var topy = (int)(recty.Top * my);
-
-		VisualObject.AddEdge( lefty, bottomy, lefty, topy, 1 );
-		VisualObject.AddEdge( righty, bottomy, righty, topy, 1 );
-		VisualObject.AddEdge( lefty, bottomy, righty, bottomy, 1 );
-		VisualObject.AddEdge( lefty, topy, righty, topy, 1 );
-
-
-
-		VisualObject.RebuildMesh();
-
-		UpdatePosition();
-	}
 
 	public override void Tick()
 	{
 		base.Tick();
 		if ( Selected && IsClient && Geometry.IsValid() && Geometry.PhysicsBody.IsValid() )
 		{
-			DebugOverlay.Circle( LocalChunkPosition, Rotation.LookAt( Vector3.Up ), Geometry.PhysicsBody.GetBounds().Size.Length / 2, Color.Green );
+
+			var radius = Geometry.PhysicsBody.GetBounds().Size.Length / 2;
+			//create a circle with Lines
+			for ( int i = 0; i < 360; i += 10 )
+			{
+				var angle = i * MathF.PI / 180;
+				var x = MathF.Cos( angle ) * radius;
+				var y = MathF.Sin( angle ) * radius;
+				var x2 = MathF.Cos( angle + 10 * MathF.PI / 180 ) * radius;
+				var y2 = MathF.Sin( angle + 10 * MathF.PI / 180 ) * radius;
+				DebugOverlay.Line( LocalChunkPosition + new Vector3( x2, y2, 0 ), LocalChunkPosition + new Vector3( x, y, 0 ), Color.Green );
+			}
+
 		}
-		if ( VisualObject != null && Captain.Local.IsBuildMode && Selected )
-		{
-			VisualObject.DebugDraw( LocalChunkPosition );
-		}
+
 
 		if ( Debug.Level >= 1 && IsClient )
 		{
@@ -122,5 +130,38 @@ public partial class SpaceObject : FloatingEntity
 		}
 	}
 
+	public Vector2Int ToGridIndex( Vector3 buildpos )
+	{
+		var localpos = Transform.PointToLocal( buildpos );
+		var gridpos = new Vector2Int( (int)MathF.Round( localpos.x / GridSize ), (int)MathF.Round( localpos.y / GridSize ) );
+		return gridpos;
+	}
 
+	public Vector3 ToWorldPosition( Vector2Int index )
+	{
+		var worldpos = Transform.PointToWorld( new( index.x * GridSize, index.y * GridSize, 0 ) );
+		return worldpos;
+	}
+
+	[ConCmd.Server]
+	public static void AddPartFromClient( int netid, Vector2 index, string v )
+	{
+		if ( FindByIndex( netid ) is not SpaceObject obj )
+		{
+			return;
+		}
+		obj.AddPartAt( index, v );
+	}
+
+	private void AddPartAt( Vector2 index, string v )
+	{
+		var part = ResourceLibrary.Get<SpacePartDefinition>( v );
+		var partInstance = new SpacePartInstance
+		{
+			PartDefinition = part,
+			Health = 100,
+			Position = new Vector2Int( (int)index.x, (int)index.y )
+		};
+		AddNewPart( partInstance );
+	}
 }

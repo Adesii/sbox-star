@@ -7,11 +7,9 @@
     <div class="Controls">
         <div class="TabGroup">
             <div class="TabButtonRow">
-                @foreach (var category in SpacePartDefinition.SpacePartDefinitions.Values.GroupBy(x =>
-                x.Category).OrderBy(x => x.Key))
+                @foreach (var category in SpacePartDefinition.SpacePartDefinitions.Values.GroupBy(x => x.Category).OrderBy(x => x.Key))
                 {
-                    <button class="TabButton" @onclick=@(()=> CurrentCategory =
-                    category.Key)>@category.Key.ToTitleCase()</button>
+                    <button class="TabButton" @onclick=@(()=> CurrentCategory = category.Key)>@category.Key.ToTitleCase()</button>
                 }
             </div>
             <div class="TabContent">
